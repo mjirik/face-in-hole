@@ -15,24 +15,26 @@ logger = logging.getLogger(__name__)
 import argparse
 import numpy as np
 import cv2
+from PIL import Image
 
 
 class FaceInHole():
     def run(self):
-        cap = cv2.VideoCapture('vtest.avi')
-        import ipdb; ipdb.set_trace() #  noqa BREAKPOINT
+        cap = cv2.VideoCapture(0)
 
-
+        im = Image.open('images/mona.png')
         # fgbg = cv2.createBackgroundSubtractorMOG()
-        # fgbg = cv2.BackgroundSubtractorMOG()
+        fgbg = cv2.BackgroundSubtractorMOG()
 
         while(1):
             ret, frame = cap.read()
 
-            # fgmask = fgbg.apply(frame)
+            fgmask = fgbg.apply(frame)
+            # cv2_im = cv2.cvtColor(cv2_im,cv2.COLOR_BGR2RGB)
+            # pil_im = Image.fromarray(cv2_im)
 
-            # cv2.imshow('frame',fgmask)
-            cv2.imshow('frame',frame)
+            cv2.imshow('frame',fgmask)
+            # cv2.imshow('frame',frame)
             k = cv2.waitKey(30) & 0xff
             if k == 27:
                 break
