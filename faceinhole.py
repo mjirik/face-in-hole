@@ -48,6 +48,7 @@ class FaceInHole():
         cv2.destroyAllWindows()
 
 def immerge(im1, im2, mask1, mask2):
+    # scipy.misc.imresize
     if len(im1.shape) != len(mask1.shape):
         if len(mask1.shape) == 2:
             masknew = np.array(im1.shape, dtype=mask1.dtype)
