@@ -42,6 +42,8 @@ class FaceInHole():
         cap.release()
         cv2.destroyAllWindows()
 
+def immerge(im1, im2, mask1, mask2):
+    return im1 * mask1 + im2 * mask2
 
 def loop():
     pass
