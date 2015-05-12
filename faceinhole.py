@@ -16,13 +16,18 @@ import argparse
 import numpy as np
 import cv2
 from PIL import Image
+import scipy
+import scipy.misc
 
 
 class FaceInHole():
     def run(self):
         cap = cv2.VideoCapture(0)
+        imurl = 'images/plakat.jpg'
 
-        im = Image.open('images/mona.png')
+        # im = Image.open('images/mona.png')
+        scipy.misc.imread(imurl)
+        # im = Image.open(imurl)
         # fgbg = cv2.createBackgroundSubtractorMOG()
         fgbg = cv2.BackgroundSubtractorMOG()
 
@@ -43,6 +48,20 @@ class FaceInHole():
         cv2.destroyAllWindows()
 
 def immerge(im1, im2, mask1, mask2):
+    if len(im1.shape) != len(mask1.shape):
+        if len(mask1.shape) == 2:
+            masknew = np.array(im1.shape, dtype=mask1.dtype)
+            masknew[:, :, 0] = mask1
+            masknew[:, :, 1] = mask1
+            masknew[:, :, 2] = mask1
+
+    if len(im2.shape) != len(mask2.shape):
+        if len(mask2.shape) == 2:
+            masknew = np.array(im1.shape, dtype=mask2.dtype)
+            masknew[:, :, 0] = mask2
+            masknew[:, :, 1] = mask2
+            masknew[:, :, 2] = mask2
+
     return im1 * mask1 + im2 * mask2
 
 def loop():
