@@ -33,11 +33,15 @@ class FaceInHole():
 
         while(1):
             ret, frame = cap.read()
-
+            npframe = np.asarray(frame)
+            print npframe.shape
+            imscene = fill_to_shape(npframe, npframe.shape)
             fgmask = fgbg.apply(frame)
-            # cv2_im = cv2.cvtColor(cv2_im,cv2.COLOR_BGR2RGB)
-            # pil_im = Image.fromarray(cv2_im)
+            # immerfe(np.frame, imscene, fgmask, 1-fgmask)
 
+            # vis2 = cv.CreateMat(h, w, cv.CV_32FC3)
+            # vis0 = cv.fromarray(vis)
+            cv.CvtColor(vis0, vis2, cv.CV_GRAY2BGR)
             cv2.imshow('frame',fgmask)
             # cv2.imshow('frame',frame)
             k = cv2.waitKey(30) & 0xff
@@ -46,6 +50,17 @@ class FaceInHole():
 
         cap.release()
         cv2.destroyAllWindows()
+
+def fill_to_shape(im, shape):
+    """
+    fill image to requested shape
+    """
+    # retim = np.zeros(shape)
+    # import ipdb; ipdb.set_trace() #  noqa BREAKPOINT
+
+    
+    return scipy.misc.imresize(im, shape)
+
 
 def immerge(im1, im2, mask1, mask2):
     # scipy.misc.imresize
