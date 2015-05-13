@@ -26,7 +26,7 @@ class FaceInHole():
         imurl = 'images/plakat.jpg'
 
         # im = Image.open('images/mona.png')
-        scipy.misc.imread(imurl)
+        imscene = scipy.misc.imread(imurl)[:, :, ::-1]
         # im = Image.open(imurl)
         # fgbg = cv2.createBackgroundSubtractorMOG()
         fgbg = cv2.BackgroundSubtractorMOG()
@@ -35,14 +35,15 @@ class FaceInHole():
             ret, frame = cap.read()
             npframe = np.asarray(frame)
             print npframe.shape
-            imscene = fill_to_shape(npframe, npframe.shape)
+            imscene = fill_to_shape(imscene, npframe.shape)
             fgmask = fgbg.apply(frame)
-            # immerfe(np.frame, imscene, fgmask, 1-fgmask)
+            newframe = immerge(npframe, imscene, fgmask, 255-fgmask)
 
             # vis2 = cv.CreateMat(h, w, cv.CV_32FC3)
             # vis0 = cv.fromarray(vis)
-            cv.CvtColor(vis0, vis2, cv.CV_GRAY2BGR)
-            cv2.imshow('frame',fgmask)
+            # cv.CvtColor(vis0, vis2, cv.CV_GRAY2BGR)
+            # cv2.imshow('frame',fgmask)
+            cv2.imshow('frame', newframe)
             # cv2.imshow('frame',frame)
             k = cv2.waitKey(30) & 0xff
             if k == 27:
@@ -64,21 +65,33 @@ def fill_to_shape(im, shape):
 
 def immerge(im1, im2, mask1, mask2):
     # scipy.misc.imresize
+    print im1.shape
+    print im2.shape
+    print mask1.shape
+    print mask2.shape
+    print np.max(mask1)
+    print np.min(mask1)
+    print np.max(mask2)
+    print np.min(mask2)
+    # import ipdb; ipdb.set_trace() #  noqa BREAKPOINT
     if len(im1.shape) != len(mask1.shape):
         if len(mask1.shape) == 2:
-            masknew = np.array(im1.shape, dtype=mask1.dtype)
+            masknew = np.zeros(im1.shape, dtype=mask1.dtype)
             masknew[:, :, 0] = mask1
             masknew[:, :, 1] = mask1
             masknew[:, :, 2] = mask1
+            mask1 = masknew
 
     if len(im2.shape) != len(mask2.shape):
         if len(mask2.shape) == 2:
-            masknew = np.array(im1.shape, dtype=mask2.dtype)
+            masknew = np.zeros(im2.shape, dtype=mask2.dtype)
             masknew[:, :, 0] = mask2
             masknew[:, :, 1] = mask2
             masknew[:, :, 2] = mask2
+            mask2 = masknew
 
-    return im1 * mask1 + im2 * mask2
+
+    return (im1 * mask1 * 1.0/255) + (im2 * mask2 * 1.0/255)
 
 def loop():
     pass
