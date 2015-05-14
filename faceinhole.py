@@ -44,19 +44,30 @@ class FaceInHole():
         self.clock = pygame.time.Clock()                         # časování
         self.keepGoing = True 
         self.photo_number = 1
+        self.camera_zoom = 1.0
+        self.camera_offset = [0, 0]
 
 
     def __prepare_scene(self, photo_number):
         self.photo_number = photo_number
+        info_scene = self.config['images'][photo_number]
 
-        info_fore = self.config['images'][photo_number]['foreground']
-        info_back = self.config['images'][photo_number]['background']
+        info_fore = info_scene['foreground']
+        info_back = info_scene['background']
+
         self.imforeground = self.__read_surf(info_fore)
         self.imbackground = self.__read_surf(info_back)
+        self.camera_zoom = info_scene['camera_zoom']
+        self.camera_offset = info_scene['camera_offset']
 
     def __read_surf(self, info):
+
+        if info is None or info == 'None':
+            return None
         
         surface = pygame.image.load(info['impath'])
+        # pygame.transform.scale(surface)
+        surface = pygame.transform.rotozoom(surface, 0, info['zoom'])
         return surface
 
 
@@ -111,12 +122,16 @@ class FaceInHole():
 
                     # if event.key == pygame.K_ESCAPE:
                     #     self.keepGoing = False                       # ukončení hlavní smyčky
+                    elif event.key == pygame.locals.K_KP0:
+                        self.__prepare_scene(0)
                     elif event.key == pygame.locals.K_KP1:
-                        self.photo_number = 1
+                        self.__prepare_scene(1)
                     elif event.key == pygame.locals.K_KP2:
-                        self.photo_number = 2
-
-
+                        self.__prepare_scene(2)
+                    elif event.key == pygame.locals.K_KP3:
+                        self.__prepare_scene(3)
+                    elif event.key == pygame.locals.K_KP4:
+                        self.__prepare_scene(4)
         
             # scipy.misc.imresize(new_frame, )
             # backp = pygame.surfarray.pixels2d(self.background)
@@ -129,11 +144,12 @@ class FaceInHole():
             npframer = np.rot90(npframe, 1)
             fgmaskr = np.rot90(fgmask, 1)
             sf_mid = make_surf_with_alpha(npframer, fgmaskr)
+            sf_mid = pygame.transform.rotozoom(sf_mid, 0, self.camera_zoom)
             
             if self.imbackground is not None:
                 self.screen.blit(self.imbackground, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
             # self.screen.blit(sf_newframe, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
-            self.screen.blit(sf_mid, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
+            self.screen.blit(sf_mid, self.camera_offset)                  # přidání pozadí k vykreslení na pozici 0, 0
             if self.imforeground is not None:
                 self.screen.blit(self.imforeground, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
             # self.screen.blit(imscene2, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
