@@ -48,10 +48,9 @@ class FaceInHole():
 
     def __prepare_scene(self, photo_number):
         self.photo_number = photo_number
-        import ipdb; ipdb.set_trace() #  noqa BREAKPOINT
 
-        info_fore = self.config[photo_number]['foreground']
-        info_back = self.config[photo_number]['background']
+        info_fore = self.config['images'][photo_number]['foreground']
+        info_back = self.config['images'][photo_number]['background']
         self.imforeground = self.__read_surf(info_fore)
         self.imbackground = self.__read_surf(info_back)
 
@@ -70,6 +69,7 @@ class FaceInHole():
         imscene = scipy.misc.imread(imurl)# [:, :, ::-1]
         imscene2 = pygame.image.load(imurl2)
 
+        self.__prepare_scene(1)
         # im = Image.open(imurl)
         # fgbg = cv2.createBackgroundSubtractorMOG()
         fgbg = BackgroundSegmentation()
@@ -80,10 +80,10 @@ class FaceInHole():
             imscene = fill_to_shape(imscene, npframe.shape)
             fgmask = fgbg.apply(frame)
             # print npframe.shape
-            print 'mask'
-            print np.max(fgmask)
-            print np.min(fgmask)
-            newframe = immerge(npframe, imscene, fgmask, 255-fgmask)
+            # print 'mask'
+            # print np.max(fgmask)
+            # print np.min(fgmask)
+            # newframe = immerge(npframe, imscene, fgmask, 255-fgmask)
 
             # # cv2.imshow('frame',fgmask)
             # cv2.imshow('frame', newframe)
@@ -122,16 +122,20 @@ class FaceInHole():
             # backp = pygame.surfarray.pixels2d(self.background)
 
             # import ipdb; ipdb.set_trace() #  noqa BREAKPOINT
-            newframe = np.rot90(newframe, 1)
-            sf_newframe = makesurf(newframe)
+            # newframe = np.rot90(newframe, 1)
+            # sf_newframe = makesurf(newframe)
 
 # novy s alphou
             npframer = np.rot90(npframe, 1)
             fgmaskr = np.rot90(fgmask, 1)
-            sf_nn = make_surf_with_alpha(npframer, fgmaskr)
+            sf_mid = make_surf_with_alpha(npframer, fgmaskr)
             
+            if self.imbackground is not None:
+                self.screen.blit(self.imbackground, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
             # self.screen.blit(sf_newframe, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
-            self.screen.blit(sf_nn, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
+            self.screen.blit(sf_mid, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
+            if self.imforeground is not None:
+                self.screen.blit(self.imforeground, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
             # self.screen.blit(imscene2, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
             # self.screen.blit(self.background, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
             # self.screen.blit(text, textRect)                     # přidání textu k vykreslení na střed

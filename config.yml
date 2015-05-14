@@ -9,11 +9,11 @@ images: [{
         'zoom': 1.0},
     },{
     'background': {
-        'impath': 'images/',
+        'impath': 'images/plakat_b.png',
         'offset': [0, 0],
         'zoom': 1.0},
     'foreground': {
-        'impath': 'images/',
+        'impath': 'images/plakat_f.png',
         'offset': [0, 0],
         'zoom': 1.0}
     },
