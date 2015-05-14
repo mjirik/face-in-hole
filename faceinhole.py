@@ -41,12 +41,13 @@ class FaceInHole():
     def run(self):
         cap = cv2.VideoCapture(0)
         imurl = 'images/plakat_full.jpg'
-        imurl2 = 'images/D6-12.png'
+        imurl2 = 'images/D6-12_small.png'
         imscene = scipy.misc.imread(imurl)# [:, :, ::-1]
         imscene2 = pygame.image.load(imurl2)
+
         # im = Image.open(imurl)
         # fgbg = cv2.createBackgroundSubtractorMOG()
-        fgbg = cv2.BackgroundSubtractorMOG2()
+        fgbg = BackgroundSegmentation()
 
         while(self.keepGoing):
             ret, frame = cap.read()
@@ -86,6 +87,16 @@ class FaceInHole():
 
         cap.release()
         cv2.destroyAllWindows()
+
+class BackgroundSegmentation():
+    def __init__(self):
+        self.fgbg = cv2.BackgroundSubtractorMOG2()
+
+    def apply(self, frame):
+        seg = self.fgbg.apply(frame)
+
+        return seg
+
 
 def fill_to_shape(im, shape):
     """
