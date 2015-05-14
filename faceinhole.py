@@ -19,14 +19,20 @@ from PIL import Image
 import scipy
 import scipy.misc
 import pygame
+import pygame.locals
+import yaml
 
 
 class FaceInHole():
-    def __init__(self):
+    def __init__(self, conf_file='config.yml'):
         """TODO: Docstring for __init__.
         :returns: TODO
 
         """
+# config
+        stream = open(conf_file, 'r')
+        self.config = yaml.load(stream)
+
         pygame.init()
 
         self.screen = pygame.display.set_mode((640,480))         # vytvoření okna s nastavením jeho velikosti
@@ -37,6 +43,7 @@ class FaceInHole():
         self.background.fill((0,0,255))                 
         self.clock = pygame.time.Clock()                         # časování
         self.keepGoing = True 
+        self.photo_number = 1
 
     def run(self):
         cap = cv2.VideoCapture(0)
@@ -67,10 +74,31 @@ class FaceInHole():
             # k = cv2.waitKey(30) & 0xff
             # if k == 27:
             #     break
-            self.clock.tick(30)                                  # omezení maximálního počtu snímků za sekundu
+            self.clock.tick(10)                                  # omezení maximálního počtu snímků za sekundu
+            # for event in pygame.event.get():
+            #     print event
+            #     if event.type == pygame.QUIT:               # probíhá událost požadující zavření okna programu?
+            #         self.keepGoing = False                       # ukončení hlavní smyčky
+
             for event in pygame.event.get():
-                if event.type == pygame.QUIT:               # probíhá událost požadující zavření okna programu?
-                    keepGoing = False                       # ukončení hlavní smyčky
+                # any other key event input
+                if event.type == pygame.locals.QUIT:
+                    done = True        
+                elif event.type == pygame.locals.KEYDOWN:
+                    if event.key == pygame.locals.K_ESCAPE:
+                        self.keepGoing = False
+                    elif event.key == pygame.locals.K_1:
+                        print "hi world mode"
+
+
+                    # if event.key == pygame.K_ESCAPE:
+                    #     self.keepGoing = False                       # ukončení hlavní smyčky
+                    elif event.key == pygame.locals.K_KP1:
+                        self.photo_number = 1
+                    elif event.key == pygame.locals.K_KP2:
+                        self.photo_number = 2
+
+
         
             # scipy.misc.imresize(new_frame, )
             # backp = pygame.surfarray.pixels2d(self.background)
