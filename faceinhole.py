@@ -45,6 +45,24 @@ class FaceInHole():
         self.keepGoing = True 
         self.photo_number = 1
 
+
+    def __prepare_scene(self, photo_number):
+        self.photo_number = photo_number
+        import ipdb; ipdb.set_trace() #  noqa BREAKPOINT
+
+        info_fore = self.config[photo_number]['foreground']
+        info_back = self.config[photo_number]['background']
+        self.imforeground = self.__read_surf(info_fore)
+        self.imbackground = self.__read_surf(info_back)
+
+    def __read_surf(self, info):
+        
+        surface = pygame.image.load(info['impath'])
+        return surface
+
+
+
+
     def run(self):
         cap = cv2.VideoCapture(0)
         imurl = 'images/plakat_full.jpg'
@@ -106,9 +124,15 @@ class FaceInHole():
             # import ipdb; ipdb.set_trace() #  noqa BREAKPOINT
             newframe = np.rot90(newframe, 1)
             sf_newframe = makesurf(newframe)
+
+# novy s alphou
+            npframer = np.rot90(npframe, 1)
+            fgmaskr = np.rot90(fgmask, 1)
+            sf_nn = make_surf_with_alpha(npframer, fgmaskr)
             
-            self.screen.blit(sf_newframe, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
-            self.screen.blit(imscene2, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
+            # self.screen.blit(sf_newframe, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
+            self.screen.blit(sf_nn, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
+            # self.screen.blit(imscene2, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
             # self.screen.blit(self.background, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
             # self.screen.blit(text, textRect)                     # přidání textu k vykreslení na střed
             pygame.display.flip()        
@@ -166,6 +190,20 @@ def immerge(im1, im2, mask1, mask2):
 
 def loop():
     pass
+
+def make_surf_with_alpha(pixels, fmask):
+    (width, height, colours) = pixels.shape
+    surf = pygame.display.set_mode((width, height))
+    surf = pygame.Surface((width, height), flags=pygame.SRCALPHA)
+    pygame.surfarray.blit_array(surf, pixels)
+    # surf = makesurf(frame)
+    # import ipdb; ipdb.set_trace() #  noqa BREAKPOINT
+    #
+    alpha = pygame.surfarray.pixels_alpha(surf)
+    alpha[...] = fmask
+    del alpha
+
+    return surf
 
 def makesurf(pixels):
     try:

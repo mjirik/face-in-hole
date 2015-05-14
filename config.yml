@@ -1,2 +1,20 @@
 resolution: [640, 480]
 
+
+images: [{
+    'background': None,
+    'foreground': {
+        'impath': 'images/D6-12_small.png',
+        'offset': [0, 0],
+        'zoom': 1.0},
+    },{
+    'background': {
+        'impath': 'images/',
+        'offset': [0, 0],
+        'zoom': 1.0},
+    'foreground': {
+        'impath': 'images/',
+        'offset': [0, 0],
+        'zoom': 1.0}
+    },
+]
