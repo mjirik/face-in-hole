@@ -83,6 +83,10 @@ class FaceInHole():
         return surface
 
 
+    def __camera_image_processing(self, frame):
+# http://effbot.org/zone/pil-sepia.htm
+# http://stackoverflow.com/questions/3114925/pil-convert-rgb-image-to-a-specific-8-bit-palette
+        return frame
 
     def __mask_processing(self, fgmask): 
         # import ipdb; ipdb.set_trace() #  noqa BREAKPOINT
