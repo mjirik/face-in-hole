@@ -71,6 +71,8 @@ class FaceInHole():
 
     def send_mail(self, filename, email):
         print "Sending email to: " + email
+        import send_photo_by_mail as spbm
+        spbm.sendmail(filename, addrs_to=email)
 
     def __prepare_scene(self, photo_number):
         self.photo_number = photo_number
