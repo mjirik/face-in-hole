@@ -49,6 +49,8 @@ class FaceInHole():
         self.photo_number = 1
         self.camera_zoom = 1.0
         self.camera_offset = [0, 0]
+        self.cap = cv2.VideoCapture(self.config['camera_source'])
+        ret, frame = self.cap.read()
 
     def snapshot(self):
         filename = '{0:010x}'.format(int(time.time() * 256))[:10] + '.jpg'
@@ -98,7 +100,6 @@ class FaceInHole():
         return fgmask
 
     def run(self):
-        cap = cv2.VideoCapture(0)
         imurl = 'images/plakat_full.jpg'
         imurl2 = 'images/D6-12_small.png'
         imscene = scipy.misc.imread(imurl)# [:, :, ::-1]
@@ -107,88 +108,77 @@ class FaceInHole():
         self.__prepare_scene(1)
         # im = Image.open(imurl)
         # fgbg = cv2.createBackgroundSubtractorMOG()
-        fgbg = BackgroundSegmentation()
+        self.fgbg = BackgroundSegmentation()
 
         while(self.keepGoing):
-            ret, frame = cap.read()
-            npframe = np.asarray(frame)[:, :, ::-1]
-            imscene = fill_to_shape(imscene, npframe.shape)
-            fgmask = fgbg.apply(frame)
-            fgmask = self.__mask_processing(fgmask)
-            npframe = self.__camera_image_processing(npframe)
+            self.tick()
 
-            # print npframe.shape
-            # print 'mask'
-            # print np.max(fgmask)
-            # print np.min(fgmask)
-            # newframe = immerge(npframe, imscene, fgmask, 255-fgmask)
+        self.cap.release()
+        cv2.destroyAllWindows()
 
-            # # cv2.imshow('frame',fgmask)
-            # cv2.imshow('frame', newframe)
-            # # cv2.imshow('frame', imscene)
-            # # cv2.imshow('frame',frame)
-            # k = cv2.waitKey(30) & 0xff
-            # if k == 27:
-            #     break
-        
-            # scipy.misc.imresize(new_frame, )
-            # backp = pygame.surfarray.pixels2d(self.background)
+    def tick(self):
+        """One tick in run().
 
-            # import ipdb; ipdb.set_trace() #  noqa BREAKPOINT
-            # newframe = np.rot90(newframe, 1)
-            # sf_newframe = makesurf(newframe)
+        """
+        ret, frame = self.cap.read()
+        npframe = np.asarray(frame)[:, :, ::-1]
+        imscene = fill_to_shape(imscene, npframe.shape)
+        fgmask = self.fgbg.apply(frame)
+        fgmask = self.__mask_processing(fgmask)
+        npframe = self.__camera_image_processing(npframe)
+
 
 # novy s alphou
-            npframer = np.rot90(npframe, 1)
-            fgmaskr = np.rot90(fgmask, 1)
-            sf_mid = make_surf_with_alpha(npframer, fgmaskr)
-            sf_mid = pygame.transform.rotozoom(sf_mid, 0, self.camera_zoom)
-            
-            if self.imbackground is not None:
-                self.screen.blit(self.imbackground, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
-            # self.screen.blit(sf_newframe, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
-            self.screen.blit(sf_mid, self.camera_offset)                  # přidání pozadí k vykreslení na pozici 0, 0
-            if self.imforeground is not None:
-                self.screen.blit(self.imforeground, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
-            # self.screen.blit(imscene2, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
-            # self.screen.blit(self.background, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
-            # self.screen.blit(text, textRect)                     # přidání textu k vykreslení na střed
-            pygame.display.flip()        
+        npframer = np.rot90(npframe, 1)
+        fgmaskr = np.rot90(fgmask, 1)
+        sf_mid = make_surf_with_alpha(npframer, fgmaskr)
+        sf_mid = pygame.transform.rotozoom(sf_mid, 0, self.camera_zoom)
+        
+        if self.imbackground is not None:
+            self.screen.blit(self.imbackground, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
+        # self.screen.blit(sf_newframe, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
+        self.screen.blit(sf_mid, self.camera_offset)                  # přidání pozadí k vykreslení na pozici 0, 0
+        if self.imforeground is not None:
+            self.screen.blit(self.imforeground, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
+        # self.screen.blit(imscene2, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
+        # self.screen.blit(self.background, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
+        # self.screen.blit(text, textRect)                     # přidání textu k vykreslení na střed
+        pygame.display.flip()        
 
-            self.clock.tick(5)                                  # omezení maximálního počtu snímků za sekundu
+        self.clock.tick(5)                                  # omezení maximálního počtu snímků za sekundu
+        self.event_processing()
 
-            for event in pygame.event.get():
-                # any other key event input
-                if event.type == pygame.locals.QUIT:
-                    done = True        
-                elif event.type == pygame.locals.KEYDOWN:
-                    if event.key == pygame.locals.K_ESCAPE:
-                        self.keepGoing = False
-                    elif event.key == pygame.locals.K_1:
-                        print "hi world mode"
+    def event_processing(self):
+        for event in pygame.event.get():
+            # any other key event input
+            if event.type == pygame.locals.QUIT:
+                done = True        
+            elif event.type == pygame.locals.KEYDOWN:
+                if event.key == pygame.locals.K_ESCAPE:
+                    self.keepGoing = False
+                elif event.key == pygame.locals.K_1:
+                    print "hi world mode"
 
 
-                    # if event.key == pygame.K_ESCAPE:
-                    #     self.keepGoing = False                       # ukončení hlavní smyčky
-                    elif event.key == pygame.locals.K_SPACE:
-                        self.snapshot()
-                    elif event.key == pygame.locals.K_KP0:
-                        self.__prepare_scene(0)
-                    elif event.key == pygame.locals.K_KP1:
-                        self.__prepare_scene(1)
-                    elif event.key == pygame.locals.K_KP2:
-                        self.__prepare_scene(2)
-                    elif event.key == pygame.locals.K_KP3:
-                        self.__prepare_scene(3)
-                    elif event.key == pygame.locals.K_KP4:
-                        self.__prepare_scene(4)
-
-        cap.release()
-        cv2.destroyAllWindows()
+                # if event.key == pygame.K_ESCAPE:
+                #     self.keepGoing = False                       # ukončení hlavní smyčky
+                elif event.key == pygame.locals.K_SPACE:
+                    self.snapshot()
+                elif event.key == pygame.locals.K_KP0:
+                    self.__prepare_scene(0)
+                elif event.key == pygame.locals.K_KP1:
+                    self.__prepare_scene(1)
+                elif event.key == pygame.locals.K_KP2:
+                    self.__prepare_scene(2)
+                elif event.key == pygame.locals.K_KP3:
+                    self.__prepare_scene(3)
+                elif event.key == pygame.locals.K_KP4:
+                    self.__prepare_scene(4)
 
 class BackgroundSegmentation():
     def __init__(self):
         self.fgbg = cv2.BackgroundSubtractorMOG2()
+        # self.fgbg = cv2.BackgroundSubtractorMOG()
 
     def apply(self, frame):
         seg = self.fgbg.apply(frame)
