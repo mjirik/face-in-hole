@@ -94,16 +94,16 @@ class FaceInHole():
     def __mask_processing(self, fgmask): 
         # import ipdb; ipdb.set_trace() #  noqa BREAKPOINT
 
-        kernel = np.ones((5,5), np.uint8)
-        # fgmask = cv2.erode(fgmask, kernel)
-        # fgmask = cv2.GaussianBlur(fgmask, (21, 21), 7)
+        kernel = np.ones((15,15), np.uint8)
+        fgmask = cv2.erode(fgmask, kernel)
+        fgmask = cv2.GaussianBlur(fgmask, (21, 21), 7)
         return fgmask
 
     def run(self):
-        imurl = 'images/plakat_full.jpg'
-        imurl2 = 'images/D6-12_small.png'
-        imscene = scipy.misc.imread(imurl)# [:, :, ::-1]
-        imscene2 = pygame.image.load(imurl2)
+        # imurl = 'images/plakat_full.jpg'
+        # imurl2 = 'images/D6-12_small.png'
+        # imscene = scipy.misc.imread(imurl)# [:, :, ::-1]
+        # imscene2 = pygame.image.load(imurl2)
 
         self.__prepare_scene(1)
         # im = Image.open(imurl)
@@ -122,7 +122,7 @@ class FaceInHole():
         """
         ret, frame = self.cap.read()
         npframe = np.asarray(frame)[:, :, ::-1]
-        imscene = fill_to_shape(imscene, npframe.shape)
+        # imscene = fill_to_shape(imscene, npframe.shape)
         fgmask = self.fgbg.apply(frame)
         fgmask = self.__mask_processing(fgmask)
         npframe = self.__camera_image_processing(npframe)
