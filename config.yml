@@ -1,4 +1,5 @@
 resolution: [640, 480]
+camera_source: -1
 
 
 images: [{
