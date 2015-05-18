@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 import argparse
 import numpy as np
 import cv2
+# import PIL
 from PIL import Image
 import scipy
 import scipy.misc
@@ -51,6 +52,15 @@ class FaceInHole():
         self.camera_offset = [0, 0]
         self.cap = cv2.VideoCapture(self.config['camera_source'])
         ret, frame = self.cap.read()
+        self.camera_rgb2xyz = (
+            1.0, 0.0, 0.0, 0.0,
+            0.0, 1.0, 0.0, 0.0,
+            0.0, 0.0, 1.0, 0.0
+            )
+
+            # 0.412453, 0.357580, 0.180423, 0,
+            # 0.212671, 0.715160, 0.072169, 0,
+            # 0.019334, 0.119193, 0.950227, 0 )
 
     def snapshot(self):
         filename = '{0:010x}'.format(int(time.time() * 256))[:10] + '.jpg'
@@ -73,6 +83,7 @@ class FaceInHole():
         self.imbackground = self.__read_surf(info_back)
         self.camera_zoom = info_scene['camera_zoom']
         self.camera_offset = info_scene['camera_offset']
+        self.camera_rgb2xyz = info_scene['camera_rgb2xyz']
 
     def __read_surf(self, info):
 
@@ -89,7 +100,20 @@ class FaceInHole():
 # TODO
 # http://effbot.org/zone/pil-sepia.htm
 # http://stackoverflow.com/questions/3114925/pil-convert-rgb-image-to-a-specific-8-bit-palette
-        return npframe
+
+        pilim = Image.fromarray(npframe)
+        # sepia_filter = np.array(
+        #         [[.393, .769, .189],
+        #         [.349, .686, .168],
+        #         [.272, .534, .131]])
+        # self.rgb2xyz = (
+        #     0.412453, 0.357580, 0.180423, 0,
+        #     0.212671, 0.715160, 0.072169, 0,
+        #     0.019334, 0.119193, 0.950227, 0 )
+        out = pilim.convert("RGB", self.camera_rgb2xyz)
+        new_npframe = np.array(out)
+
+        return new_npframe
 
     def __mask_processing(self, fgmask): 
         # import ipdb; ipdb.set_trace() #  noqa BREAKPOINT

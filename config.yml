@@ -10,7 +10,10 @@ images: [{
         'zoom': 1.3},
     'camera_zoom': 1.0,
     'camera_offset': [0, 0],
-
+    'camera_rgb2xyz': [
+        1.0, 0.0, 0.0, 0.0,
+        0.0, 1.0, 0.0, 0.0,
+        0.0, 0.0, 1.0, 0.0],
     },{
     'background': {
         'impath': 'images/plakat_b.png',
@@ -21,9 +24,12 @@ images: [{
         'offset': [0, 0],
         'zoom': 1.3},
     'camera_zoom': 1.0,
-    'camera_offset': [0, 0]
+    'camera_offset': [0, 0],
+    'camera_rgb2xyz': [
+        1.0, 0.0, 0.0, 0.0,
+        0.0, 1.0, 0.0, 0.0,
+        0.0, 0.0, 1.0, 0.0],
     },{
-    'pk': NONE,
     'background': None,
     'foreground': {
         'impath': 'images/D6-12_small.png',
@@ -31,6 +37,10 @@ images: [{
         'zoom': 1.3},
     'camera_zoom': 0.4,
     'camera_offset': [200, 200],
+    'camera_rgb2xyz': [
+        0.60, 0.25, 0.15, 0.0,
+        0.30, 0.55, 0.15, 0.0,
+        0.30, 0.25, 0.45, 0.0],
     },{
     'background': {
         'impath': 'images/D6-58.tif',
@@ -39,5 +49,9 @@ images: [{
     'foreground': None,
     'camera_zoom': 0.4,
     'camera_offset': [200, 200],
+    'camera_rgb2xyz': [
+        0.0, 1.0, 0.0, 0.0,
+        0.0, 0.0, 1.0, 0.0,
+        1.0, 0.0, 0.0, 0.0],
     }
 ]
