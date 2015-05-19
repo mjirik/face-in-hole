@@ -188,7 +188,8 @@ class FaceInHole():
 
 class BackgroundSegmentation():
     def __init__(self):
-        self.fgbg = cv2.BackgroundSubtractorMOG2()
+        # self.fgbg = cv2.BackgroundSubtractorMOG2()
+        self.fgbg = cv2.BackgroundSubtractorMOG()
 
     def apply(self, frame):
         seg = self.fgbg.apply(frame)
