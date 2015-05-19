@@ -93,6 +93,12 @@ def ask2(screen, question):
       current_string.append('9')
     elif inkey == K_2:
       current_string.append('@')
+    elif inkey == K_AT:
+      current_string.append('@')
+    elif inkey == K_KP_MULTIPLY:
+      current_string.append('@')
+    elif inkey == K_TAB:
+      current_string.append('@')
     elif inkey <= 255:
       current_string.append(chr(inkey))
     display_box(screen, question + ": " + string.join(current_string,""))
