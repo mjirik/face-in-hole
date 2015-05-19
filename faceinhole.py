@@ -23,6 +23,7 @@ import pygame
 import pygame.locals
 import yaml
 import time
+import cv
 
 import inputbox
 
@@ -39,7 +40,7 @@ class FaceInHole():
 
         pygame.init()
 
-        self.screen = pygame.display.set_mode((640,480))         # vytvoření okna s nastavením jeho velikosti
+        self.screen = pygame.display.set_mode(self.config['resolution'])         # vytvoření okna s nastavením jeho velikosti
         pygame.display.set_caption("Example")               # nastavení titulku okna
         
         self.background = pygame.Surface(self.screen.get_size())      # vytvoření vrstvy pozadí
@@ -51,6 +52,15 @@ class FaceInHole():
         self.camera_zoom = 1.0
         self.camera_offset = [0, 0]
         self.cap = cv2.VideoCapture(self.config['camera_source'])
+        # import ipdb; ipdb.set_trace() #  noqa BREAKPOINT
+        # self.cap.set( cv.CV_CAP_PROP_EXPOSURE, 5)
+        # print self.cap.get(cv.CV_CAP_PROP_CONTRAST)
+        # print self.cap.get(cv.CV_CAP_PROP_BRIGHTNESS)
+        #
+        # import ipdb; ipdb.set_trace() #  noqa BREAKPOINT
+        self.cap.set(cv.CV_CAP_PROP_FRAME_WIDTH, 1024)
+        self.cap.set(cv.CV_CAP_PROP_FRAME_HEIGHT, 768)
+        # cv.SetCaptureProperty(self.cap, cv.CV_CAP_PROP_EXPOSURE, 5)
         ret, frame = self.cap.read()
         self.camera_rgb2xyz = (
             1.0, 0.0, 0.0, 0.0,
@@ -134,14 +144,8 @@ class FaceInHole():
         return fgmask
 
     def run(self):
-        # imurl = 'images/plakat_full.jpg'
-        # imurl2 = 'images/D6-12_small.png'
-        # imscene = scipy.misc.imread(imurl)# [:, :, ::-1]
-        # imscene2 = pygame.image.load(imurl2)
 
         self.__prepare_scene(1)
-        # im = Image.open(imurl)
-        # fgbg = cv2.createBackgroundSubtractorMOG()
         self.fgbg = BackgroundSegmentation()
 
         while(self.keepGoing):
@@ -167,6 +171,7 @@ class FaceInHole():
         fgmaskr = np.rot90(fgmask, 1)
         sf_mid = make_surf_with_alpha(npframer, fgmaskr)
         sf_mid = pygame.transform.rotozoom(sf_mid, 0, self.camera_zoom)
+        # pygame.display.set_mode(self.config['resolution'])
         
         if self.imbackground is not None:
             self.screen.blit(self.imbackground, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
@@ -208,6 +213,15 @@ class FaceInHole():
                     self.__prepare_scene(3)
                 elif event.key == pygame.locals.K_KP4:
                     self.__prepare_scene(4)
+                elif event.key == pygame.locals.K_KP5:
+                    print self.cap.get(cv.CV_CAP_PROP_MODE)
+                    print self.cap.get(cv.CV_CAP_PROP_BRIGHTNESS)
+                    print self.cap.get(cv.CV_CAP_PROP_CONTRAST)
+                    print self.cap.get(cv.CV_CAP_PROP_SATURATION)
+                    print self.cap.get(cv.CV_CAP_PROP_GAIN)
+                    import ipdb; ipdb.set_trace() #  noqa BREAKPOINT
+
+                    # self.__prepare_scene(5)
 
 class BackgroundSegmentation():
     def __init__(self):
