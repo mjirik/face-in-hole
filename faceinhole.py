@@ -68,8 +68,8 @@ class FaceInHole():
             0.0, 0.0, 1.0, 0.0
             )
         try:
-            self.watermark = self.__read_surf(self.config['watermark'])
-            self.watermark_offset = self.config['watermark_offset']
+            self.watermark, self.watermark_offset = self.__read_surf(self.config['watermark'])
+            # self.watermark_offset = self.config['watermark_offset']
             # pygame.image.load(self.config['watermark_file'])
         except:
             self.watermark = None
@@ -111,10 +111,10 @@ class FaceInHole():
         info_fore = info_scene['foreground']
         info_back = info_scene['background']
 
-        self.imforeground = self.__read_surf(info_fore)
-        self.imforeground_offset = info_fore['offset']
-        self.imbackground = self.__read_surf(info_back)
-        self.imbackground_offset = info_back['offset']
+        self.imforeground, self.imforeground_offset = self.__read_surf(info_fore)
+        # self.imforeground_offset = info_fore['offset']
+        self.imbackground, self.imbackground_offset = self.__read_surf(info_back)
+        # self.imbackground_offset = info_back['offset']
         self.camera_zoom = info_scene['camera_zoom']
         self.camera_offset = info_scene['camera_offset']
         self.camera_rgb2xyz = info_scene['camera_rgb2xyz']
@@ -122,14 +122,14 @@ class FaceInHole():
     def __read_surf(self, info):
 
         if info is None or info == 'None':
-            return None
+            return None, None
         
         surface = pygame.image.load(info['impath'])
         if self.config['flip']:
             surface = pygame.transform.flip(surface, True, False)
         # pygame.transform.scale(surface)
         surface = pygame.transform.rotozoom(surface, 0, info['zoom'])
-        return surface
+        return surface, info['offset']
 
 
     def __camera_image_processing(self, npframe):
@@ -154,9 +154,19 @@ class FaceInHole():
     def __mask_processing(self, fgmask): 
         # import ipdb; ipdb.set_trace() #  noqa BREAKPOINT
 
-        kernel = np.ones((15,15), np.uint8)
+        # remove shadows
+        cr = self.config['cut_right']
+        cl = self.config['cut_left']
+        fgmask[:, :cr] = 0 
+        fgmask[:, -cl:] = 0 
+        fgmask[fgmask < 128] = 0
+        ks = self.config['erosion_kernel_size']
+        kernel = np.ones((ks, ks), np.uint8)
+        bs = self.config['blur_kernel_size']
+        bsi = self.config['blur_sigma']
         fgmask = cv2.erode(fgmask, kernel)
-        fgmask = cv2.GaussianBlur(fgmask, (21, 21), 7)
+        fgmask = cv2.GaussianBlur(fgmask, (bs, bs), bsi)
+
         return fgmask
 
     def run(self):
@@ -177,8 +187,8 @@ class FaceInHole():
         ret, frame = self.cap.read()
         npframe = np.asarray(frame)[:, :, ::-1]
         # imscene = fill_to_shape(imscene, npframe.shape)
-        fgmask = self.fgbg.apply(frame)
-        fgmask = self.__mask_processing(fgmask)
+        fgmask_raw = self.fgbg.apply(frame)
+        fgmask = self.__mask_processing(fgmask_raw)
         npframe = self.__camera_image_processing(npframe)
 
 
@@ -202,7 +212,7 @@ class FaceInHole():
         if self.watermark is not None:
             self.screen.blit(self.watermark, self.watermark_offset)                  # přidání pozadí k vykreslení na pozici 0, 0
         if self.debugmode:
-            self.screen.blit(makesurf(np.rot90(fgmask,1)), (0, 0))
+            self.screen.blit(makesurf(np.rot90(fgmask_raw, 1)), (0, 0))
 
         pygame.display.flip()        
 
@@ -235,6 +245,16 @@ class FaceInHole():
                     self.__prepare_scene(3)
                 elif event.key == pygame.locals.K_KP4:
                     self.__prepare_scene(4)
+                elif event.key == pygame.locals.K_KP5:
+                    self.__prepare_scene(5)
+                elif event.key == pygame.locals.K_KP6:
+                    self.__prepare_scene(6)
+                elif event.key == pygame.locals.K_KP7:
+                    self.__prepare_scene(7)
+                elif event.key == pygame.locals.K_KP8:
+                    self.__prepare_scene(8)
+                elif event.key == pygame.locals.K_KP9:
+                    self.__prepare_scene(9)
                 elif event.key == pygame.locals.K_i:
                     print self.cap.get(cv.CV_CAP_PROP_MODE)
                     print self.cap.get(cv.CV_CAP_PROP_BRIGHTNESS)
