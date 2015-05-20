@@ -67,17 +67,29 @@ class FaceInHole():
             0.0, 1.0, 0.0, 0.0,
             0.0, 0.0, 1.0, 0.0
             )
+        try:
+            self.watermark = self.__read_surf(self.config['watermark'])
+            self.watermark_offset = self.config['watermark_offset']
+            # pygame.image.load(self.config['watermark_file'])
+        except:
+            self.watermark = None
 
             # 0.412453, 0.357580, 0.180423, 0,
             # 0.212671, 0.715160, 0.072169, 0,
             # 0.019334, 0.119193, 0.950227, 0 )
+        self.debugmode = False
 
     def snapshot(self):
         filename = '{0:010x}'.format(int(time.time() * 256))[:10] + '.jpg'
+        # self.screen = pygame.transform.flip(self.screen, True, False)
+        # if self.watermark is not None:
+        #     self.screen.blit(self.watermark, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
+        # pygame.display.flip()        
         pygame.image.save(self.screen, filename)
         email = inputbox.ask2(self.screen, "email")
         if email is not None:
             self.send_mail(filename, email)
+
 
     def send_mail(self, filename, email):
         print "Sending email to: " + email
@@ -100,7 +112,9 @@ class FaceInHole():
         info_back = info_scene['background']
 
         self.imforeground = self.__read_surf(info_fore)
+        self.imforeground_offset = info_fore['offset']
         self.imbackground = self.__read_surf(info_back)
+        self.imbackground_offset = info_back['offset']
         self.camera_zoom = info_scene['camera_zoom']
         self.camera_offset = info_scene['camera_offset']
         self.camera_rgb2xyz = info_scene['camera_rgb2xyz']
@@ -111,6 +125,8 @@ class FaceInHole():
             return None
         
         surface = pygame.image.load(info['impath'])
+        if self.config['flip']:
+            surface = pygame.transform.flip(surface, True, False)
         # pygame.transform.scale(surface)
         surface = pygame.transform.rotozoom(surface, 0, info['zoom'])
         return surface
@@ -174,14 +190,20 @@ class FaceInHole():
         # pygame.display.set_mode(self.config['resolution'])
         
         if self.imbackground is not None:
-            self.screen.blit(self.imbackground, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
+            self.screen.blit(self.imbackground, self.imbackground_offset)                  # přidání pozadí k vykreslení na pozici 0, 0
         # self.screen.blit(sf_newframe, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
         self.screen.blit(sf_mid, self.camera_offset)                  # přidání pozadí k vykreslení na pozici 0, 0
         if self.imforeground is not None:
-            self.screen.blit(self.imforeground, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
+            self.screen.blit(self.imforeground, self.imforeground_offset)                  # přidání pozadí k vykreslení na pozici 0, 0
         # self.screen.blit(imscene2, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
         # self.screen.blit(self.background, (0,0))                  # přidání pozadí k vykreslení na pozici 0, 0
         # self.screen.blit(text, textRect)                     # přidání textu k vykreslení na střed
+
+        if self.watermark is not None:
+            self.screen.blit(self.watermark, self.watermark_offset)                  # přidání pozadí k vykreslení na pozici 0, 0
+        if self.debugmode:
+            self.screen.blit(makesurf(np.rot90(fgmask,1)), (0, 0))
+
         pygame.display.flip()        
 
         self.clock.tick(5)                                  # omezení maximálního počtu snímků za sekundu
@@ -213,7 +235,7 @@ class FaceInHole():
                     self.__prepare_scene(3)
                 elif event.key == pygame.locals.K_KP4:
                     self.__prepare_scene(4)
-                elif event.key == pygame.locals.K_KP5:
+                elif event.key == pygame.locals.K_i:
                     print self.cap.get(cv.CV_CAP_PROP_MODE)
                     print self.cap.get(cv.CV_CAP_PROP_BRIGHTNESS)
                     print self.cap.get(cv.CV_CAP_PROP_CONTRAST)
@@ -221,11 +243,19 @@ class FaceInHole():
                     print self.cap.get(cv.CV_CAP_PROP_GAIN)
                     import ipdb; ipdb.set_trace() #  noqa BREAKPOINT
 
+                elif event.key == pygame.locals.K_d:
+                        self.debugmode = True 
+                elif event.key == pygame.locals.K_n:
+                        self.debugmode = False
                     # self.__prepare_scene(5)
 
 class BackgroundSegmentation():
     def __init__(self):
-        self.fgbg = cv2.BackgroundSubtractorMOG2()
+        self.fgbg = cv2.BackgroundSubtractorMOG2(
+                history=10,
+                varThreshold=4.0,
+                bShadowDetection=True)
+        # self.fgbg = cv2.BackgroundSubtractorMOG2()
         # self.fgbg = cv2.BackgroundSubtractorMOG()
 
     def apply(self, frame):
@@ -290,6 +320,12 @@ def make_surf_with_alpha(pixels, fmask):
     return surf
 
 def makesurf(pixels):
+    if len(pixels.shape) == 2:
+        px = np.zeros([pixels.shape[0], pixels.shape[1], 3], dtype=pixels.dtype)
+        px[:,:,0] = pixels
+        px[:,:,1] = pixels
+        px[:,:,2] = pixels
+        pixels = px
     try:
         surf = pygame.surfarray.make_surface(pixels)
     except IndexError:

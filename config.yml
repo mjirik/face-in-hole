@@ -5,7 +5,11 @@ mail_subject: "Moutarde-Diaphane"
 mail_cc: ['mjirik@kky.zcu.cz', "muzejnoc@kky.zcu.cz"]
 mail_from: "muzejnoc@kky.zcu.cz"
 mail_preamble: ""
-
+watermark: {
+    'impath': "./images/ZCM logo_male_neg.png",
+    'offset': [200, 40],
+    'zoom': 1.0}
+flip: True
 
 images: [{
     'background': None,
