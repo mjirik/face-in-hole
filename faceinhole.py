@@ -65,7 +65,11 @@ class FaceInHole():
         ret, frame = self.cap.read()
         self.aec = AutomaticExposureCompensation()
         self.aec.set_ref_image(frame)
-        self.aec.set_area(-1, -1, -40, -40)
+        # self.aec.set_area(40, -1, 0, -40)
+        # self.aec.set_area(-1, -1, -40, -40)
+        # self.aec.set_area(-1, 40, -40, 0)
+        if self.config['compensation']:
+            self.aec.set_area(40, 40, 0, 0)
 
         self.camera_rgb2xyz = (
             1.0, 0.0, 0.0, 0.0,
