@@ -1,7 +1,7 @@
 # resolution: [1024, 768]
 # offset: [vodorovna, svisla]
 resolution: [2024, 768]
-camera_source: -1
+camera_source: 1
 mail_subject: "Moutarde-Diaphane"
 mail_cc: ['mjirik@kky.zcu.cz', "muzejnoc@kky.zcu.cz"]
 mail_from: "muzejnoc@kky.zcu.cz"
