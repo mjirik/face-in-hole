@@ -24,6 +24,7 @@ import pygame.locals
 import yaml
 import time
 import cv
+from expocomp import AutomaticExposureCompensation
 
 import inputbox
 
@@ -62,6 +63,10 @@ class FaceInHole():
         self.cap.set(cv.CV_CAP_PROP_FRAME_HEIGHT, 768)
         # cv.SetCaptureProperty(self.cap, cv.CV_CAP_PROP_EXPOSURE, 5)
         ret, frame = self.cap.read()
+        self.aec = AutomaticExposureCompensation()
+        self.aec.set_ref_image(frame)
+        self.aec.set_area(-1, -1, -40, -40)
+
         self.camera_rgb2xyz = (
             1.0, 0.0, 0.0, 0.0,
             0.0, 1.0, 0.0, 0.0,
@@ -77,7 +82,7 @@ class FaceInHole():
             # 0.412453, 0.357580, 0.180423, 0,
             # 0.212671, 0.715160, 0.072169, 0,
             # 0.019334, 0.119193, 0.950227, 0 )
-        self.debugmode = False
+        self.debugmode = 'N'
 
     def snapshot(self):
         filename = '{0:010x}'.format(int(time.time() * 256))[:10] + '.jpg'
@@ -187,7 +192,10 @@ class FaceInHole():
         ret, frame = self.cap.read()
         npframe = np.asarray(frame)[:, :, ::-1]
         # imscene = fill_to_shape(imscene, npframe.shape)
-        fgmask_raw = self.fgbg.apply(frame)
+        framec = self.aec.compensate(frame)
+        print 'pred ', np.max(frame[:,:,0])
+        print 'po   ', np.max(framec[:,:,0])
+        fgmask_raw = self.fgbg.apply(framec)
         fgmask = self.__mask_processing(fgmask_raw)
         npframe = self.__camera_image_processing(npframe)
 
@@ -211,8 +219,13 @@ class FaceInHole():
 
         if self.watermark is not None:
             self.screen.blit(self.watermark, self.watermark_offset)                  # přidání pozadí k vykreslení na pozici 0, 0
-        if self.debugmode:
+        if self.debugmode is 'D':
             self.screen.blit(makesurf(np.rot90(fgmask_raw, 1)), (0, 0))
+        if self.debugmode is 'C':
+            self.screen.blit(makesurf(np.rot90(npframe, 1)), (0, 0))
+        if self.debugmode is 'CC':
+            dframe = np.asarray(framec)[:, :, ::-1]
+            self.screen.blit(makesurf(np.rot90(dframe, 1)), (0, 0))
 
         pygame.display.flip()        
 
@@ -264,9 +277,13 @@ class FaceInHole():
                     import ipdb; ipdb.set_trace() #  noqa BREAKPOINT
 
                 elif event.key == pygame.locals.K_d:
-                        self.debugmode = True 
+                        self.debugmode = 'D' 
+                elif event.key == pygame.locals.K_f:
+                        self.debugmode = 'C' 
+                elif event.key == pygame.locals.K_g:
+                        self.debugmode = 'CC' 
                 elif event.key == pygame.locals.K_n:
-                        self.debugmode = False
+                        self.debugmode = 'N' 
                     # self.__prepare_scene(5)
 
 class BackgroundSegmentation():
@@ -275,6 +292,7 @@ class BackgroundSegmentation():
                 history=10,
                 varThreshold=4.0,
                 bShadowDetection=True)
+
         # self.fgbg = cv2.BackgroundSubtractorMOG2()
         # self.fgbg = cv2.BackgroundSubtractorMOG()
 

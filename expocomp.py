@@ -30,9 +30,17 @@ class AutomaticExposureCompensation():
         self.endY = 2
         self.image = None
         self.mean = 0
+        self.mode = 'normal'
 
 
     def set_ref_image(self, image):
+        try:
+            image.shape
+        except:
+            import ipdb; ipdb.set_trace() #  noqa BREAKPOINT
+
+            image = np.asarray(image)
+            self.mode = 'opencv'
         self.image = image
         self.mean = self.__area_mean(self.image)
 
@@ -73,10 +81,19 @@ class AutomaticExposureCompensation():
     def compensate(self, frame):
         mean = self.__area_mean(frame)
         # import ipdb; ipdb.set_trace() #  noqa BREAKPOINT
-        print np.max(frame)
-        newframe = frame * self.mean/mean
+        # print np.max(frame)
+        comp = self.mean/mean
+        print comp
+        newframe = frame * comp 
 
-        print np.max(newframe)
+        # print np.max(newframe)
+        newframe[newframe < 0] = 0
+        newframe[newframe > 255] = 255
+        newframe[
+                self.startX:self.endX,
+                self.startY:self.endY
+                ] = 0
+
         return newframe.astype(frame.dtype)
 
 
